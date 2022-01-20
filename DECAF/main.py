@@ -7,7 +7,7 @@ from util import adult_data
 from xgboost import XGBClassifier
 
 from util import data
-from model.DECAF import CasualGAN
+from model.DECAF import CausalGAN
 
 def experiment_train_base_classifier(X, y):
     baseline_clf = XGBClassifier().fit(X, y)
@@ -49,9 +49,9 @@ def experiment_decaf(X, y):
         ]
 
     dm = data.DataModule(X)
-    model = CasualGAN(dm.dims[0], dag_seed=dag_seed, batch_size=64, lambda_gp=1, lambda_privacy=0, weight_decay=1e-2, grad_dag_loss=True, l1_W=1e-4, l1_g=0, p_gen=-1, use_mask=True)
+    model = CausalGAN(dm.dims[0], dag_seed=dag_seed, batch_size=64, lambda_gp=1, lambda_privacy=0, weight_decay=1e-2, grad_dag_loss=True, l1_W=1e-4, l1_g=0, use_mask=True)
 
-    trainer = pl.Trainer(max_epochs=1, logger=False)
+    trainer = pl.Trainer(max_epochs=5, logger=False)
     trainer.fit(model, dm)
 
     X_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order()).detach().numpy())
