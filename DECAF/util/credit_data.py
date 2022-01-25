@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 
-def credit_load():
+def load():
     path = "https://archive.ics.uci.edu/ml/machine-learning-databases/credit-screening/crx.data"
     names = [
         'male', 
@@ -38,9 +38,13 @@ def credit_load():
     for feat in ['male', 'married','bankcustomer', 'educationlevel', 'ethnicity','priordefault', 'employed', 'driverslicense', 'citizen', 'zip', 'approved']:
         df[feat] = preprocessing.LabelEncoder().fit_transform(df[feat])
 
+    print(df.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
+    
     dfr = df.copy()
     df = df.values
     X = df[:, :15].astype(np.float32)
+    min_max_scaler = preprocessing.MinMaxScaler()
+    X = min_max_scaler.fit_transform(X)
     y = df[:, 15].astype(np.uint32)
     Xy = df.astype(np.float32)
-    return X, y, Xy, dfr
+    return X, y, dfr, min_max_scaler

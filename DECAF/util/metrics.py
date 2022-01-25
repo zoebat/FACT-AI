@@ -14,17 +14,17 @@ def ftu(clf, X_synth, idx):
     """
     # Prepare a dataset with protected variable A set to 0
     X_A0 = np.copy(X_synth)
-    X_A0[idx] = 0
+    X_A0[:, idx] = 0
     y_A0 = clf.predict(X_A0)
 
-    # Prepare a dataset with protected variable A set to 0
+    # Prepare a dataset with protected variable A set to 1
     X_A1 = np.copy(X_synth)
-    X_A1[idx] = 1
+    X_A1[:, idx] = 1
     y_A1 = clf.predict(X_A1)
 
     # Measure FTU by calculating the difference between the predictions of a downstream classifier for setting A to 1 and 0
-    ftu = np.absolute(y_A0 - y_A1)
-    return np.sum(ftu)/len(ftu)
+    ftu = np.abs(y_A0 - y_A1)
+    return np.average(ftu)
 
 
 def dp(clf, X_synth, idx):
@@ -44,10 +44,10 @@ def dp(clf, X_synth, idx):
     # Measure DP in terms of the Total Variation
     # i.e., the difference between the predictions of a downstream classifier in terms of positive to negative ratio between the different classes of protected variable A
     
-    y_A0 = np.where(X_synth[idx] == 0, y_pred)
-    y_A1 = np.where(X_synth[idx] == 0, y_pred)
-    dp = np.aboslute(y_A0 - y_A1)
-    return np.sum(dp)/len(dp)
+    y_A0 = np.where(X_synth[:, idx] == 0, y_pred, 0)
+    y_A1 = np.where(X_synth[:, idx] == 1, y_pred, 0)
+    dp = np.abs(y_A0 - y_A1)
+    return np.average(dp)
 
 
 
