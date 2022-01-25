@@ -4,7 +4,7 @@ import argparse
 from pycausal.pycausal import pycausal as pcs
 from pycausal import prior as p
 from pycausal import search as s
-from credit_data import credit_load
+from credit_data import load
 
 def find_dag(data, column_names, pri):
     pc = pcs()
@@ -16,13 +16,13 @@ def find_dag(data, column_names, pri):
     tetrad.getEdges()
     dag_seed = []
     for edge in tetrad.getEdges():
-        dag_seed.append(list([column_names.index(edge.split(' ')[0]), column_names.index(edge.split(' ')[-1])]))
+        dag_seed.append(list([column_names.index(edge.split(' ')[0]) - 1, column_names.index(edge.split(' ')[-1]) - 1]))
     
     return dag_seed
 
 
 if __name__ == "__main__":
-    _, _, _, df = credit_load()
+    _, _, _, df = load()
     parser = argparse.ArgumentParser()  # Parse training configuration
 
     parser.add_argument('--data', type=pd.DataFrame, default = df, help="Data to find dag for")
