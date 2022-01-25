@@ -1,6 +1,6 @@
-
 import numpy as np
 import pandas as pd
+from sklearn import preprocessing
 
 def load():
     path = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
@@ -138,11 +138,19 @@ def load():
         [">50K", "<=50K"],
     ]
 
+    print(df.describe())
     for row in replace:
         df = df.replace(row, range(len(row)))
 
+    print(df.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
+
     df = df.values
+
     X = df[:, :14].astype(np.uint32)
+
+    min_max_scaler = preprocessing.MinMaxScaler()
+    X = min_max_scaler.fit_transform(X)
+
     y = df[:, 14].astype(np.uint8)
-    Xy = df.astype(np.uint32)
-    return X, y, Xy
+
+    return X, y, min_max_scaler

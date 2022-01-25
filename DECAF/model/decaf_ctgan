@@ -7,171 +7,99 @@ import pytorch_lightning as pl
 import scipy.linalg as slin
 import torch
 import torch.nn as nn
+from torch.nn import BatchNorm1d, Dropout, LeakyReLU, Linear, Module, ReLU, Sequential, functional
 
 
-class TraceExpm(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx: Any, input: torch.Tensor) -> torch.Tensor:
-        # detach so we can cast to NumPy
-        E = slin.expm(input.detach().numpy())
-        f = np.trace(E)
-        E = torch.from_numpy(E)
-        ctx.save_for_backward(E)
-        return torch.as_tensor(f, dtype=input.dtype)
+class Residual(Module):
+    def __init__(self, i, o):
+        super(Residual, self).__init__()
+        self.fc = Linear(i, o)
+        self.bn = BatchNorm1d(o)
+        self.relu = ReLU()
 
-    @staticmethod
-    def backward(ctx: Any, grad_output: torch.Tensor) -> torch.Tensor:
-        (E,) = ctx.saved_tensors
-        grad_input = grad_output * E.t()
-        return grad_input
+    def forward(self, input_):
+        out = self.fc(input_)
+        out = self.bn(out)
+        out = self.relu(out)
+        return torch.cat([out, input_], dim=1)
 
+class Generator(Module):
+    """Generator for the CTGANSynthesizer."""
 
-trace_expm = TraceExpm.apply
+    def __init__(self, embedding_dim, generator_dim, data_dim, use_mask=False, f_scale=0.1, dag_seed= []):
+        super(Generator, self).__init__()
+        dim = embedding_dim
+        seq = []
+        for item in list(generator_dim):
+            seq += [Residual(dim, item)]
+            dim += item
+        seq.append(Linear(dim, data_dim))
+        self.seq = Sequential(*seq)
 
-activation_layer = nn.ReLU(inplace=True)
-
-
-class Generator_causal(nn.Module):
-    def __init__(
-        self,
-        z_dim: int,
-        x_dim: int,
-        h_dim: int,
-        use_mask: bool = False,
-        f_scale: float = 0.1,
-        dag_seed: list = [],
-    ) -> None:
-        super().__init__()
-
-        self.x_dim = x_dim
-
-        def block(in_feat: int, out_feat: int, normalize: bool = False) -> list:
-            layers = [nn.Linear(in_feat, out_feat)]
-            if normalize:
-                layers.append(nn.BatchNorm1d(out_feat, 0.8))
-            layers.append(activation_layer)
-            return layers
-
-        self.shared = nn.Sequential(*block(h_dim, h_dim), *block(h_dim, h_dim))
-
-        if use_mask:
-
-            if len(dag_seed) > 0:
-                M_init = torch.rand(x_dim, x_dim) * 0.0
-                M_init[torch.eye(x_dim, dtype=bool)] = 0
-                M_init = torch.rand(x_dim, x_dim) * 0.0
-                for pair in dag_seed:
-                    M_init[pair[0], pair[1]] = 1
-
-                self.M = torch.nn.parameter.Parameter(M_init, requires_grad=False)
-                print("Initialised adjacency matrix as parsed:\n", self.M)
-            else:
-                M_init = torch.rand(x_dim, x_dim) * 0.2
-                M_init[torch.eye(x_dim, dtype=bool)] = 0
-                self.M = torch.nn.parameter.Parameter(M_init)
-        else:
-            self.M = torch.ones(x_dim, x_dim)
-        self.fc_i = nn.ModuleList(
-            [nn.Linear(x_dim + 1, h_dim) for i in range(self.x_dim)]
-        )
-        self.fc_f = nn.ModuleList([nn.Linear(h_dim, 1) for i in range(self.x_dim)])
-
-        for layer in self.shared.parameters():
-            if type(layer) == nn.Linear:
-                torch.nn.init.xavier_normal_(layer.weight)
-                layer.weight.data *= f_scale
-
-        for i, layer in enumerate(self.fc_i):
-            torch.nn.init.xavier_normal_(layer.weight)
-            layer.weight.data *= f_scale
-            layer.weight.data[:, i] = 1e-16
-
-        for i, layer in enumerate(self.fc_f):
-            torch.nn.init.xavier_normal_(layer.weight)
-            layer.weight.data *= f_scale
-
-    def sequential(
-        self,
-        x: torch.Tensor,
-        z: torch.Tensor,
-        gen_order: Union[list, dict, None] = None,
-        biased_edges: dict = {},
-    ) -> torch.Tensor:
-        out = x.clone().detach()
-
-        if gen_order is None:
-            gen_order = list(range(self.x_dim))
-
-        for i in gen_order:
-            x_masked = out.clone() * self.M[:, i]
-            x_masked[:, i] = 0.0
-            if i in biased_edges:
-                for j in biased_edges[i]:
-                    x_j = x_masked[:, j].detach().numpy()
-                    np.random.shuffle(x_j)
-                    x_masked[:, j] = torch.from_numpy(x_j)
-            out_i = activation_layer(
-                self.fc_i[i](torch.cat([x_masked, z[:, i].unsqueeze(1)], axis=1))
-            )
-            out[:, i] = nn.Sigmoid()(self.fc_f[i](self.shared(out_i))).squeeze()
-        return out
+    def forward(self, input_):
+        data = self.seq(input_)
+        return data
 
 
-class Discriminator(nn.Module):
-    def __init__(self, x_dim: int, h_dim: int) -> None:
-        super().__init__()
+class Discriminator(Module):
+    def __init__(self, input_dim, discriminator_dim, pac=10):
+        super(Discriminator, self).__init__()
+        dim = input_dim * pac
+        self.pac = pac
+        self.pacdim = dim
+        seq = []
+        for item in list(discriminator_dim):
+            seq += [Linear(dim, item), LeakyReLU(0.2), Dropout(0.5)]
+            dim = item
 
-        self.model = nn.Sequential(
-            nn.Linear(x_dim, h_dim),
-            activation_layer,
-            nn.Linear(h_dim, h_dim),
-            activation_layer,
-            nn.Linear(h_dim, 1),
-        )
+        seq += [Linear(dim, 1)]
+        self.seq = Sequential(*seq)
 
-        for layer in self.model.parameters():
-            if type(layer) == nn.Linear:
-                torch.nn.init.xavier_normal_(layer)
+    def calc_gradient_penalty(self, real_data, fake_data, device='cpu', pac=10, lambda_=10):
+        """Compute the gradient penalty."""
+        alpha = torch.rand(real_data.size(0) // pac, 1, 1, device=device)
+        alpha = alpha.repeat(1, pac, real_data.size(1))
+        alpha = alpha.view(-1, real_data.size(1))
 
-    def forward(self, x_hat: torch.Tensor) -> torch.Tensor:
-        return self.model(x_hat)
+        interpolates = alpha * real_data + ((1 - alpha) * fake_data)
+
+        disc_interpolates = self(interpolates)
+
+        gradients = torch.autograd.grad(
+            outputs=disc_interpolates, inputs=interpolates,
+            grad_outputs=torch.ones(disc_interpolates.size(), device=device),
+            create_graph=True, retain_graph=True, only_inputs=True
+        )[0]
+
+        gradients_view = gradients.view(-1, pac * real_data.size(1)).norm(2, dim=1) - 1
+        gradient_penalty = ((gradients_view) ** 2).mean() * lambda_
+
+        return gradient_penalty
+
+    def forward(self, input_):
+        assert input_.size()[0] % self.pac == 0
+        return self.seq(input_.view(-1, self.pacdim))
 
 
-class DECAF(pl.LightningModule):
-    def __init__(
-        self,
-        input_dim: int,
-        dag_seed: list = [],
-        h_dim: int = 200,
-        lr: float = 1e-3,
-        b1: float = 0.5,
-        b2: float = 0.999,
-        batch_size: int = 32,
-        lambda_gp: float = 10,
-        lambda_privacy: float = 1,
-        d_updates: int = 5,
-        eps: float = 1e-8,
-        alpha: float = 1,
-        rho: float = 1,
-        weight_decay: float = 1e-2,
-        grad_dag_loss: bool = False,
-        l1_g: float = 0,
-        l1_W: float = 1,
-        p_gen: float = -1,
-        use_mask: bool = False,
-    ):
+class DECAF_CTGAN(pl.LightningModule):
+    def __init__(self, embedding_dim=128, generator_dim=(256, 256), discriminator_dim=(256, 256),
+                 generator_lr=2e-4, generator_decay=1e-6, discriminator_lr=2e-4,
+                 discriminator_decay=1e-6, batch_size=500, discriminator_steps=1,
+                 log_frequency=True, verbose=False, epochs=300, pac=10, cuda=True):
         super().__init__()
         self.save_hyperparameters()
 
         self.iterations_d = 0
         self.iterations_g = 0
 
-
         self.x_dim = input_dim
         self.z_dim = self.x_dim
 
+        log.info(
+            f"Setting up network with x_dim = {self.x_dim}, z_dim = {self.z_dim}, h_dim = {h_dim}"
+        )
         # networks
-        self.generator = Generator_causal(
+        self.generator = Generator(
             z_dim=self.z_dim,
             x_dim=self.x_dim,
             h_dim=h_dim,

@@ -1,20 +1,23 @@
+from pyparsing import col
 import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
 import torch
+
+from pytorch_lightning.loggers import TensorBoardLogger
 from sklearn.metrics import precision_score, recall_score, roc_auc_score
 from util import adult_data
 from xgboost import XGBClassifier
 
 from util import data
-from model.DECAF import CausalGAN
+from model.DECAF import DECAF
 
 def experiment_train_base_classifier(X, y):
     baseline_clf = XGBClassifier().fit(X, y)
     y_pred = baseline_clf.predict(X)
     print("baseline scores", precision_score(y, y_pred), recall_score(y, y_pred), roc_auc_score(y, y_pred))
 
-def experiment_decaf(X, y):
+def experiment_decaf(X, y, min_max_scaler):
     dag_seed = [
         [0, 6],
         [0, 12],
@@ -47,18 +50,42 @@ def experiment_decaf(X, y):
         [4, 1],
         [4, 7]
         ]
+    baseline_clf = XGBClassifier().fit(X, y)
+    y_pred = baseline_clf.predict(X)
 
+    print(
+        "baseline scores",
+        precision_score(y, y_pred),
+        recall_score(y, y_pred),
+        roc_auc_score(y, y_pred),
+    )
     dm = data.DataModule(X)
-    model = CausalGAN(dm.dims[0], dag_seed=dag_seed, batch_size=64, lambda_gp=1, lambda_privacy=0, weight_decay=1e-2, grad_dag_loss=True, l1_W=1e-4, l1_g=0, use_mask=True)
+    model = DECAF(dm.dims[0], dag_seed=dag_seed, batch_size=64, lambda_gp=1, lambda_privacy=0, weight_decay=1e-2, grad_dag_loss=True, l1_W=1e-4, l1_g=0, use_mask=True)
 
-    trainer = pl.Trainer(max_epochs=5, logger=False)
+    logger = TensorBoardLogger("logs", name="DECAF", log_graph=True)
+    trainer = pl.Trainer(max_epochs=50, logger=logger)
     trainer.fit(model, dm)
 
     X_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order()).detach().numpy())
-    print(X_synth[0:5])
+    X_synth = min_max_scaler.inverse_transform(X_synth)
+    header = ['age','workclass','fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',  'relationship', 'race','sex', 'capital-gain', 'capital-loss',
+      'hours-per-week',  'native-country']
+    dfs  = pd.DataFrame(data=X_synth, columns=header)
+    print(dfs.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
+
+    y_synth = baseline_clf.predict(X_synth)
+    print(y_synth[0:20])
+
+    synth_clf = XGBClassifier().fit(X_synth, y_synth)
+    y_pred = synth_clf.predict(X_synth)
+    print(y_pred[0:20])
+    print(
+        "synth scores",
+        precision_score(y_synth, y_pred),
+        recall_score(y_synth, y_pred),
+        roc_auc_score(y_synth, y_pred),
+    )
 
 if __name__ == "__main__":
-    X, y, Xy = adult_data.load()
-    print(X[0:5,])
-    print(y[0:5,])
-    experiment_decaf(X, y)
+    X, y, min_max_scaler = adult_data.load()
+    experiment_decaf(X, y, min_max_scaler)
