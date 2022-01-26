@@ -150,7 +150,8 @@ def load():
 
     min_max_scaler = preprocessing.MinMaxScaler()
     X = min_max_scaler.fit_transform(X)
+    Xy = min_max_scaler.fit_transform(df)
 
     y = df[:, 14].astype(np.uint8)
 
-    return X, y, min_max_scaler
+    return X, y, Xy, min_max_scaler

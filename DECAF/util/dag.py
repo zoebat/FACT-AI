@@ -16,7 +16,7 @@ def find_dag(data, column_names, pri):
     tetrad.getEdges()
     dag_seed = []
     for edge in tetrad.getEdges():
-        dag_seed.append(list([column_names.index(edge.split(' ')[0]) - 1, column_names.index(edge.split(' ')[-1]) - 1]))
+        dag_seed.append(list([column_names.index(edge.split(' ')[0]), column_names.index(edge.split(' ')[-1])]))
     
     return dag_seed
 
