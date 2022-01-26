@@ -43,11 +43,12 @@ def dp(clf, X_synth, idx):
 
     # Measure DP in terms of the Total Variation
     # i.e., the difference between the predictions of a downstream classifier in terms of positive to negative ratio between the different classes of protected variable A
-    
+    X_synth[:, idx] = np.round(X_synth[:, idx])
     y_A0 = np.where(X_synth[:, idx] == 0, y_pred, 0)
     y_A1 = np.where(X_synth[:, idx] == 1, y_pred, 0)
-    dp = np.abs(y_A0 - y_A1)
-    return np.average(dp)
+    y0 = np.average(y_A0)
+    y1 = np.average(y_A1)
+    return np.abs(y0 - y1)
 
 
 
