@@ -6,8 +6,9 @@ import torch
 
 from pytorch_lightning.loggers import TensorBoardLogger
 from sklearn.metrics import precision_score, recall_score, roc_auc_score
-from util import adult_data, credit_data
+from util import adult_data, credit_data, metrics
 from xgboost import XGBClassifier
+from sklearn.neural_network import MLPClassifier
 
 from util import data
 from model.DECAF import DECAF
@@ -18,8 +19,8 @@ def experiment_train_base_classifier(X, y):
     print("baseline scores", precision_score(y, y_pred), recall_score(y, y_pred), roc_auc_score(y, y_pred))
 
 def experiment_decaf(X, y, min_max_scaler):
-    dag_seed = [[0, 6], [7, 0], [9, 1], [5, 0], [6, 9], [12, 1], [6, 1], [8, 9], [8, 14], [7, 6], [13, 14], [3, 8], [3, 2], [7, 14], [6, 10], [12, 10], [11, 8], [8, 7]]
-    baseline_clf = XGBClassifier().fit(X, y)
+    dag_seed = [[1, 7], [8, 1], [10, 2], [6, 1], [7, 10], [13, 2], [7, 2], [9, 10], [9, 15], [8, 7], [14, 15], [4, 9], [4, 3], [8, 15], [7, 11], [13, 11], [12, 9], [9, 8]]
+    baseline_clf = MLPClassifier().fit(X, y)
     y_pred = baseline_clf.predict(X)
 
     print(
@@ -32,7 +33,7 @@ def experiment_decaf(X, y, min_max_scaler):
     model = DECAF(dm.dims[0], dag_seed=dag_seed, batch_size=64, lambda_gp=1, lambda_privacy=0, weight_decay=1e-2, grad_dag_loss=True, l1_W=1e-4, l1_g=0, use_mask=True)
 
     logger = TensorBoardLogger("logs", name="DECAF", log_graph=True)
-    trainer = pl.Trainer(max_epochs=30, logger=logger)
+    trainer = pl.Trainer(max_epochs=50, logger=logger)
     trainer.fit(model, dm)
 
     X_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order()).detach().numpy())
@@ -43,16 +44,44 @@ def experiment_decaf(X, y, min_max_scaler):
     print(dfs.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
 
     y_synth = baseline_clf.predict(X_synth)
-    print(y_synth[0:20])
+    print(max(y_synth), min(y_synth))
 
-    synth_clf = XGBClassifier().fit(X_synth, y_synth)
+    synth_clf = MLPClassifier().fit(X_synth, y_synth)
     y_pred_synth = synth_clf.predict(X_synth)
-    print(y_pred[0:20])
     print(
-        "synth scores",
+        "FTU",
+        metrics.ftu(synth_clf, X_synth, 6))
+    print(
+        "DP",
+        metrics.dp(synth_clf, X_synth, 6)
+    )
+
+    print(
+        "scores: y_pred vs y_pred_synth",
+        precision_score(y_pred, y_pred_synth),
+        recall_score(y_pred, y_pred_synth),
+        roc_auc_score(y_pred, y_pred_synth),
+    )
+
+    print(
+        "scores: y vs y_pred_synth",
         precision_score(y, y_pred_synth),
         recall_score(y, y_pred_synth),
         roc_auc_score(y, y_pred_synth),
+    )
+
+    print(
+        "scores: y_pred vs y_synth",
+        precision_score(y_pred, y_synth),
+        recall_score(y_pred, y_synth),
+        roc_auc_score(y_pred, y_synth),
+    )
+
+    print(
+        "scores: y vs y_synth",
+        precision_score(y, y_synth),
+        recall_score(y, y_synth),
+        roc_auc_score(y, y_synth),
     )
 
 if __name__ == "__main__":
