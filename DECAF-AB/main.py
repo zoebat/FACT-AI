@@ -18,7 +18,7 @@ def experiment_train_base_classifier(X, y):
     y_pred = baseline_clf.predict(X)
     print("baseline scores", precision_score(y, y_pred), recall_score(y, y_pred), roc_auc_score(y, y_pred))
 
-def experiment_decaf(X, y, Xy, min_max_scaler):
+def experiment_decaf(X, y, Xy):
     dag_seed = [
         [0, 6],
         [0, 12],
@@ -73,22 +73,20 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     model = DECAF(dm.dims[0], dag_seed=dag_seed, batch_size=64, lambda_gp=1, lambda_privacy=0, weight_decay=1e-2, grad_dag_loss=True, l1_W=1e-4, l1_g=0, use_mask=True)
 
     logger = TensorBoardLogger("logs", name="DECAF", log_graph=True)
-    trainer = pl.Trainer(max_epochs=20, logger=logger)
+    trainer = pl.Trainer(max_epochs=20, logger=False)
     trainer.fit(model, dm)
 
     Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order()).detach().numpy())
-    Xy_synth1 = min_max_scaler.inverse_transform(Xy_synth)
-    header = ['age','workclass','fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',  'relationship', 'race','sex', 'capital-gain', 'capital-loss',
-      'hours-per-week',  'native-country', "label"]
-    dfs  = pd.DataFrame(data=Xy_synth1, columns=header)
-    print(dfs.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
+    # Xy_synth = min_max_scaler.inverse_transform(Xy_synth)
+    # header = ['age','workclass','fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',  'relationship', 'race','sex', 'capital-gain', 'capital-loss',
+    #   'hours-per-week',  'native-country', "label"]
+    # dfs  = pd.DataFrame(data=Xy_synth, columns=header)
+    # print(dfs.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
 
     X_synth = Xy_synth[:, :14]
     y_synth = np.round(Xy_synth[:, 14])
 
     synth_clf = MLPClassifier().fit(X_synth, y_synth)
-
-    y_base_synth = baseline_clf.predict(X_synth)
     y_pred_synth = synth_clf.predict(X_synth)
 
     print(
@@ -127,14 +125,7 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
         roc_auc_score(y, y_synth),
     )
 
-    print(
-        "scores: y_base_synth vs y_pred_synth",
-        precision_score(y_base_synth, y_pred_synth),
-        recall_score(y_base_synth, y_pred_synth),
-        roc_auc_score(y_base_synth, y_pred_synth),
-    )
-
 if __name__ == "__main__":
-    X, y, Xy, min_max_scaler = adult_data.load()
-    experiment_decaf(X, y, Xy, min_max_scaler)
+    X, y, Xy = adult_data.load()
+    experiment_decaf(X, y, Xy)
 
