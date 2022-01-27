@@ -55,6 +55,10 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
         [13, 14],
         [13, 7],
     ]
+    bias_dict_FTU = {14: [9]}
+    bias_dict_CF = {14: [7, 9, 5]}
+    bis_dict_DP = {14: [7, 13, 1, 9, 5, 12, 6]}
+
     baseline_clf = MLPClassifier().fit(X, y)
     y_pred = baseline_clf.predict(X)
 
@@ -71,7 +75,7 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     trainer = pl.Trainer(max_epochs=30, logger=logger)
     trainer.fit(model, dm)
 
-    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order()).detach().numpy())
+    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order(), biased_edges={}).detach().numpy())
     Xy_synth1 = min_max_scaler.inverse_transform(Xy_synth)
     header = ['age','workclass','fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',  'relationship', 'race','sex', 'capital-gain', 'capital-loss',
       'hours-per-week',  'native-country', "label"]
