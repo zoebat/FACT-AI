@@ -28,15 +28,14 @@ def load(bias):
 
     df.reset_index(drop=True, inplace=True) 
 
-    for col in df:
-        if df[col].dtype == "object":
-            df = df[df[col] != "?"]
-
     df = df.dropna(how = 'all')
     df = df[df.age != '?']
+    df.reset_index(drop=True, inplace = True)
 
     for feat in ['male', 'married','bankcustomer', 'educationlevel', 'ethnicity','priordefault', 'employed', 'driverslicense', 'citizen', 'zip', 'approved']:
         df[feat] = preprocessing.LabelEncoder().fit_transform(df[feat])
+
+    df['age'] = pd.to_numeric(df['age'], errors='coerce')
 
     df.loc[df['ethnicity'] <= 4, 'ethnicity'] = 0
     df.loc[df['ethnicity'] > 4, 'ethnicity']= 1
