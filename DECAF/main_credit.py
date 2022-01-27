@@ -14,7 +14,7 @@ from util import data
 from model.DECAF import DECAF
 
 def experiment_train_base_classifier(X, y):
-    baseline_clf = XGBClassifier().fit(X, y)
+    baseline_clf = MLPClassifier().fit(X, y)
     y_pred = baseline_clf.predict(X)
     print("baseline scores", precision_score(y, y_pred), recall_score(y, y_pred), roc_auc_score(y, y_pred))
 
@@ -22,6 +22,8 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     dag_seed = [[1, 7], [8, 1], [10, 2], [6, 1], [7, 10], [13, 2], [7, 2], [9, 10], [9, 15], [8, 7], [14, 15], [4, 9], [4, 3], [8, 15], [7, 11], [13, 11], [12, 9], [9, 8]]
     baseline_clf = MLPClassifier().fit(X, y)
     y_pred = baseline_clf.predict(X)
+    bias_dict_FT = {15: [6]}
+    bias_dict_DP = {15: [6, 3]}
 
     print(
         "baseline scores",
@@ -36,7 +38,7 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     trainer = pl.Trainer(max_epochs=50, logger=logger)
     trainer.fit(model, dm)
 
-    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order()).detach().numpy())
+    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order(), biased_edges={}).detach().numpy())
     Xy_synth = min_max_scaler.inverse_transform(Xy_synth)
     # header = ['age','workclass','fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',  'relationship', 'race','sex', 'capital-gain', 'capital-loss',
     #   'hours-per-week',  'native-country']
@@ -49,6 +51,7 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
 
     synth_clf = MLPClassifier().fit(X_synth, y_synth)
     y_pred_synth = synth_clf.predict(X_synth)
+    print(max(y_pred_synth), min(y_pred_synth))
     print(
         "FTU",
         metrics.ftu(synth_clf, X_synth, 6))
