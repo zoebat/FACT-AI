@@ -46,12 +46,14 @@ def load(bias):
     biased_data.loc[biased_data['ethnicity'] == 4, 'approved'] = np.logical_and(biased_data.loc[biased_data['ethnicity'] == 4, 'approved'].values, np.random.binomial(1, bias, len(biased_data.loc[biased_data['ethnicity'] == 4, 'approved']))).astype(int)
 
     print(biased_data.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
+
+    scaler = preprocessing.MinMaxScaler()
+    scaler.fit(df)
+    biased_data[biased_data.columns] = scaler.transform(biased_data)
     
     dfr = df.copy()
     biased_data = biased_data.values
     X = biased_data[:, :15].astype(np.float32)
-    min_max_scaler = preprocessing.MinMaxScaler()
-    X = min_max_scaler.fit_transform(X)
     y = biased_data[:, 15].astype(np.uint32)
-    Xy = min_max_scaler.fit_transform(biased_data)
-    return X, y, dfr, Xy, min_max_scaler
+    Xy = biased_data
+    return X, y, dfr, Xy, scaler
