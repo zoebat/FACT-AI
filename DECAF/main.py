@@ -13,11 +13,6 @@ from sklearn.neural_network import MLPClassifier
 from util import data, metrics
 from model.DECAF import DECAF
 
-def experiment_train_base_classifier(X, y):
-    baseline_clf = XGBClassifier().fit(X, y)
-    y_pred = baseline_clf.predict(X)
-    print("baseline scores", precision_score(y, y_pred), recall_score(y, y_pred), roc_auc_score(y, y_pred))
-
 def experiment_decaf(X, y, Xy, min_max_scaler):
     dag_seed = [
         [0, 6],
@@ -73,7 +68,7 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     model = DECAF(dm.dims[0], dag_seed=dag_seed, batch_size=64, lambda_gp=1, lambda_privacy=0, weight_decay=1e-2, grad_dag_loss=True, l1_W=1e-4, l1_g=0, use_mask=True)
 
     logger = TensorBoardLogger("logs", name="DECAF", log_graph=True)
-    trainer = pl.Trainer(max_epochs=20, logger=logger)
+    trainer = pl.Trainer(max_epochs=30, logger=logger)
     trainer.fit(model, dm)
 
     Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order()).detach().numpy())
@@ -84,55 +79,19 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     print(dfs.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
 
     X_synth = Xy_synth[:, :14]
-    y_synth = np.round(Xy_synth[:, 14])
+    y_synth = np.round(Xy_synth[:, 14]).astype(int)
 
     synth_clf = MLPClassifier().fit(X_synth, y_synth)
+    y_pred_synth = synth_clf.predict(X)
+    y_pred_synth_proba = synth_clf.predict_proba(X)
 
-    y_base_synth = baseline_clf.predict(X_synth)
-    y_pred_synth = synth_clf.predict(X_synth)
-
-    print(
-        "FTU",
-        metrics.ftu(synth_clf, X_synth, 9))
-    print(
-        "DP",
-        metrics.dp(synth_clf, X_synth, 9)
-    )
-
-    print(
-        "scores: y_pred vs y_pred_synth",
-        precision_score(y_pred, y_pred_synth),
-        recall_score(y_pred, y_pred_synth),
-        roc_auc_score(y_pred, y_pred_synth),
-    )
 
     print(
         "scores: y vs y_pred_synth",
         precision_score(y, y_pred_synth),
         recall_score(y, y_pred_synth),
-        roc_auc_score(y, y_pred_synth),
-    )
-
-    print(
-        "scores: y_pred vs y_synth",
-        precision_score(y_pred, y_synth),
-        recall_score(y_pred, y_synth),
-        roc_auc_score(y_pred, y_synth),
-    )
-
-    print(
-        "scores: y vs y_synth",
-        precision_score(y, y_synth),
-        recall_score(y, y_synth),
-        roc_auc_score(y, y_synth),
-    )
-
-    print(
-        "scores: y_base_synth vs y_pred_synth",
-        precision_score(y_base_synth, y_pred_synth),
-        recall_score(y_base_synth, y_pred_synth),
-        roc_auc_score(y_base_synth, y_pred_synth),
-    )
+        roc_auc_score(y, y_pred_synth_proba[:, 1]))
+    
 
 if __name__ == "__main__":
     X, y, Xy, min_max_scaler = adult_data.load()
