@@ -22,7 +22,7 @@ def find_dag(data, column_names, pri):
 
 
 if __name__ == "__main__":
-    _, _, df, _, _ = load()
+    _, _, df, _, _ = load(0.5)
     parser = argparse.ArgumentParser()  # Parse training configuration
 
     parser.add_argument('--data', type=pd.DataFrame, default = df, help="Data to find dag for")

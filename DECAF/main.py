@@ -75,7 +75,7 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     trainer = pl.Trainer(max_epochs=30, logger=logger)
     trainer.fit(model, dm)
 
-    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order(), biased_edges={}).detach().numpy())
+    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order(), biased_edges=bias_dict_FTU).detach().numpy())
     Xy_synth1 = min_max_scaler.inverse_transform(Xy_synth)
     header = ['age','workclass','fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',  'relationship', 'race','sex', 'capital-gain', 'capital-loss',
       'hours-per-week',  'native-country', "label"]
@@ -85,11 +85,19 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     X_synth = Xy_synth[:, :14]
     y_synth = np.round(Xy_synth[:, 14]).astype(int)
 
+    y_base_synth = baseline_clf.predict(X_synth)
     synth_clf = MLPClassifier().fit(X_synth, y_synth)
     y_pred_synth = synth_clf.predict(X)
     y_pred_synth_proba = synth_clf.predict_proba(X)
 
-
+    print(
+        "FTU",
+        metrics.ftu(synth_clf, X_synth, 9))
+    print(
+        "DP",
+        metrics.dp(synth_clf, X_synth, 9)
+    )
+    
     print(
         "scores: y vs y_pred_synth",
         precision_score(y, y_pred_synth),
