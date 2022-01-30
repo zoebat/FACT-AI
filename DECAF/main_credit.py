@@ -40,54 +40,52 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
 
     Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order(), biased_edges={}).detach().numpy())
     Xy_synth = min_max_scaler.inverse_transform(Xy_synth)
-    # header = ['age','workclass','fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',  'relationship', 'race','sex', 'capital-gain', 'capital-loss',
-    #   'hours-per-week',  'native-country']
-    dfs  = pd.DataFrame(data=Xy_synth)
+    header = [
+        'male', 
+        'age', 
+        'debt', 
+        'married', 
+        'bankcustomer', 
+        'educationlevel', 
+        'ethnicity', 
+        'yearsemployed',
+        'priordefault', 
+        'employed', 
+        'creditscore', 
+        'driverslicense', 
+        'citizen', 
+        'zip', 
+        'income', 
+        'approved'
+        ]
+    dfs  = pd.DataFrame(data=Xy_synth, columns=header)
+    print("columns:", len(dfs.columns))
     print(dfs.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
 
     X_synth = Xy_synth[:, :15]
     y_synth = np.round(Xy_synth[:, 15])
     print(max(y_synth), min(y_synth))
 
+    y_base_synth = baseline_clf.predict(X_synth)
     synth_clf = MLPClassifier().fit(X_synth, y_synth)
-    y_pred_synth = synth_clf.predict(X_synth)
-    print(max(y_pred_synth), min(y_pred_synth))
+    y_pred_synth = synth_clf.predict(X)
+    print(min(y_pred_synth), max(y_pred_synth))
+    y_pred_synth_proba = synth_clf.predict_proba(X)
+
     print(
         "FTU",
-        metrics.ftu(synth_clf, X_synth, 6))
+        metrics.ftu(synth_clf, X_synth, 4))
     print(
         "DP",
-        metrics.dp(synth_clf, X_synth, 6)
+        metrics.dp(synth_clf, X_synth, 4)
     )
-
-    print(
-        "scores: y_pred vs y_pred_synth",
-        precision_score(y_pred, y_pred_synth),
-        recall_score(y_pred, y_pred_synth),
-        roc_auc_score(y_pred, y_pred_synth),
-    )
-
+    
     print(
         "scores: y vs y_pred_synth",
         precision_score(y, y_pred_synth),
         recall_score(y, y_pred_synth),
-        roc_auc_score(y, y_pred_synth),
-    )
-
-    print(
-        "scores: y_pred vs y_synth",
-        precision_score(y_pred, y_synth),
-        recall_score(y_pred, y_synth),
-        roc_auc_score(y_pred, y_synth),
-    )
-
-    print(
-        "scores: y vs y_synth",
-        precision_score(y, y_synth),
-        recall_score(y, y_synth),
-        roc_auc_score(y, y_synth),
-    )
+        roc_auc_score(y, y_pred_synth_proba[:, 1]))
 
 if __name__ == "__main__":
-    X, y, dfr, Xy, min_max_scaler = credit_data.load()
+    X, y, dfr, Xy, min_max_scaler = credit_data.load(0.5)
     experiment_decaf(X, y, Xy, min_max_scaler)
