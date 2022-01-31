@@ -14,50 +14,10 @@ from util import data, metrics
 from model.DECAF import DECAF
 
 def experiment_decaf(X, y, Xy, min_max_scaler):
-    dag_seed = [
-        [0, 6],
-        [0, 12],
-        [0, 14],
-        [0, 1],
-        [0, 5],
-        [0, 3],
-        [1, 14],
-        [3, 6],
-        [3, 12],
-        [3, 14],
-        [3, 1],
-        [3, 7],
-        [5, 6],
-        [5, 12],
-        [5, 14],
-        [5, 1],
-        [5, 7],
-        [5, 3],
-        [6, 14],
-        [7, 14],
-        [8, 6],
-        [8, 14],
-        [8, 12],
-        [8, 3],
-        [8, 5],
-        [9, 6],
-        [9, 5],
-        [9, 14],
-        [9, 12],
-        [9, 1],
-        [9, 3],
-        [9, 7],
-        [12, 14],
-        [13, 5],
-        [13, 12],
-        [13, 3],
-        [13, 1],
-        [13, 14],
-        [13, 7],
-    ]
+    dag_seed = [[9, 8], [0, 6], [9, 12], [11, 4], [0, 10], [0, 3], [5, 12], [8, 7], [6, 4], [8, 5], [5, 11], [0, 5], [10, 4], [8, 4], [2, 14], [1, 13], [5, 4], [9, 3], [9, 5], [3, 4], [0, 11], [0, 2], [7, 14], [6, 1], [0, 1], [13, 7], [9, 4], [1, 8], [7, 12], [12, 10], [11, 14], [9, 2], [6, 12], [11, 10], [12, 14], [4, 14], [1, 4], [5, 14], [8, 13], [8, 12], [1, 3], [7, 10], [0, 7], [0, 14], [2, 8], [3, 14], [6, 14], [1, 5], [11, 12], [10, 14], [6, 8], [9, 0], [13, 3], [5, 10], [2, 13], [5, 13], [9, 7], [13, 4], [9, 6], [9, 14], [12, 4], [5, 7]]
     bias_dict_FTU = {14: [9]}
-    bias_dict_CF = {14: [7, 9, 5]}
-    bis_dict_DP = {14: [7, 13, 1, 9, 5, 12, 6]}
+    bias_dict_CF = {14: [9, 0, 4, 2, 5, 7]}
+    bias_dict_DP = {14: [9, 0, 3, 4, 2, 12, 5, 6, 7]}
 
     baseline_clf = MLPClassifier().fit(X, y)
     y_pred = baseline_clf.predict(X)
@@ -75,7 +35,7 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     trainer = pl.Trainer(max_epochs=30, logger=logger)
     trainer.fit(model, dm)
 
-    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order(), biased_edges=bias_dict_FTU).detach().numpy())
+    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order(), biased_edges=bias_dict_DP).detach().numpy())
     Xy_synth1 = min_max_scaler.inverse_transform(Xy_synth)
     header = ['age','workclass','fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',  'relationship', 'race','sex', 'capital-gain', 'capital-loss',
       'hours-per-week',  'native-country', "label"]
@@ -106,6 +66,6 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     
 
 if __name__ == "__main__":
-    X, y, Xy, min_max_scaler = adult_data.load()
+    X, y, dfr, Xy, min_max_scaler = adult_data.load()
     experiment_decaf(X, y, Xy, min_max_scaler)
 
