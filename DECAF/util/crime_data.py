@@ -133,8 +133,7 @@ def load():
         'LemasGangUnitDeploy',
         'LemasPctOfficDrugUn',
         'PolicBudgPerPop',
-        'ViolentCrimesPerPop' #target variable with range frequency: maybe set lower half 0 and higher half 1?
-
+        'ViolentCrimesPerPop'
     ]
 
     df = pd.read_csv(path, names=names, index_col=False)

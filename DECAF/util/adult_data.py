@@ -144,6 +144,7 @@ def load():
 
     print(df.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
 
+    dfr = df.copy()
     df = df.values
 
     X = df[:, :14].astype(np.uint32)
@@ -154,4 +155,4 @@ def load():
 
     y = df[:, 14].astype(np.uint8)
 
-    return X, y, Xy, min_max_scaler
+    return X, y, dfr, Xy, min_max_scaler
