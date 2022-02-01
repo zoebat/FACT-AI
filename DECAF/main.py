@@ -56,8 +56,8 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
         [13, 7],
     ]
     bias_dict_FTU = {14: [9]}
-    bias_dict_CF = {14: [9, 0, 4, 2, 5, 7]}
-    bias_dict_DP = {14: [9, 0, 3, 4, 2, 12, 5, 6, 7]}
+    bias_dict_CF = {14: [7, 9, 5]}
+    bias_dict_DP = {14: [7, 13, 1, 9, 5, 12, 6]}
 
     baseline_clf = MLPClassifier().fit(X, y)
     y_pred = baseline_clf.predict(X)
