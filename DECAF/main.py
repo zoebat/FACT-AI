@@ -6,12 +6,16 @@ import torch
 
 from pytorch_lightning.loggers import TensorBoardLogger
 from sklearn.metrics import precision_score, recall_score, roc_auc_score
-from util import adult_data
+from util import adult_data, metrics, data, dag
 from xgboost import XGBClassifier
 from sklearn.neural_network import MLPClassifier
 
-from util import data, metrics
 from model.DECAF import DECAF
+
+def experiment_train_base_classifier(X, y):
+    baseline_clf = MLPClassifier().fit(X, y)
+    y_pred = baseline_clf.predict(X)
+    print("baseline scores", precision_score(y, y_pred), recall_score(y, y_pred), roc_auc_score(y, y_pred))
 
 def experiment_decaf(X, y, Xy, min_max_scaler):
     dag_seed = [[9, 8], [0, 6], [9, 12], [11, 4], [0, 10], [0, 3], [5, 12], [8, 7], [6, 4], [8, 5], [5, 11], [0, 5], [10, 4], [8, 4], [2, 14], [1, 13], [5, 4], [9, 3], [9, 5], [3, 4], [0, 11], [0, 2], [7, 14], [6, 1], [0, 1], [13, 7], [9, 4], [1, 8], [7, 12], [12, 10], [11, 14], [9, 2], [6, 12], [11, 10], [12, 14], [4, 14], [1, 4], [5, 14], [8, 13], [8, 12], [1, 3], [7, 10], [0, 7], [0, 14], [2, 8], [3, 14], [6, 14], [1, 5], [11, 12], [10, 14], [6, 8], [9, 0], [13, 3], [5, 10], [2, 13], [5, 13], [9, 7], [13, 4], [9, 6], [9, 14], [12, 4], [5, 7]]
