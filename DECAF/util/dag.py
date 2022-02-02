@@ -12,7 +12,7 @@ from .credit_data import load as credit_load
 
 def get_data(dataset_name):
     if dataset_name == 'adult':
-        _, _, data, _, _ = adult_load()
+        data, _, _ = adult_load()
         column_names = [
             "age",
             "workclass",
@@ -44,7 +44,7 @@ def get_data(dataset_name):
         "hours-per-week",
         "native-country"],['label']]
     elif dataset_name == 'credit':
-        _, _, data, _, _ = credit_load()
+        data, _, _ = credit_load(0)
         column_names = [
             'male',
             'age',
@@ -63,7 +63,7 @@ def get_data(dataset_name):
             'income',
             'approved'
         ]
-        pri = [['age','ethnicity'],['male', 'debt', 'married', 'bankcustomer', 'educationlevel', 'yearsemployed', 'employed', 'creditscore', 'driverslicense', 'citizen', 'zip', 'income'],['approved']]
+        pri = [['age','ethnicity', 'male'],['debt', 'married', 'bankcustomer', 'educationlevel', 'yearsemployed', 'employed', 'creditscore', 'driverslicense', 'citizen', 'zip', 'income'],['approved']]
     elif dataset_name == 'crime':
         _, _, data, _, _ = crime_load()
         column_names = [
@@ -199,7 +199,7 @@ def get_data(dataset_name):
         # Chose root nodes randomly, maybe experiment with different root nodes
         pri = [['state', 'population', 'perCapInc','MedRent','NumStreet','LemasTotReqPerPop'], ['county','community','communityname','fold','householdsize','racepctblack','racePctWhite','racePctAsian','racePctHisp','agePct12t21','agePct12t29','agePct16t24','agePct65up','numbUrban','pctUrban','medIncome','pctWWage','pctWFarmSelf','pctWInvInc','pctWSocSec','pctWPubAsst','pctWRetire','medFamInc','whitePerCap','blackPerCap','indianPerCap','AsianPerCap','OtherPerCap','HispPerCap','NumUnderPov','PctPopUnderPov','PctLess9thGrade','PctNotHSGrad','PctBSorMore','PctUnemployed','PctEmploy','PctEmplManu','PctEmplProfServ','PctOccupManu','PctOccupMgmtProf','MalePctDivorce','MalePctNevMarr','FemalePctDiv','TotalPctDiv','PersPerFam','PctFam2Par','PctKids2Par','PctYoungKids2Par','PctTeen2Par','PctWorkMomYoungKids','PctWorkMom','NumIlleg','PctIlleg','NumImmig','PctImmigRecent','PctImmigRec5','PctImmigRec8','PctImmigRec10','PctRecentImmig','PctRecImmig5','PctRecImmig8','PctRecImmig10','PctSpeakEnglOnly','PctNotSpeakEnglWell','PctLargHouseFam','PctLargHouseOccup','PersPerOccupHous','PersPerOwnOccHous','PersPerRentOccHous','PctPersOwnOccup','PctPersDenseHous','PctHousLess3BR','MedNumBR','HousVacant','PctHousOccup','PctHousOwnOcc','PctVacantBoarded','PctVacMore6Mos','MedYrHousBuilt','PctHousNoPhone','PctWOFullPlumb','OwnOccLowQuart','OwnOccMedVal','OwnOccHiQuart','RentLowQ','RentMedian','RentHighQ','MedRentPctHousInc','MedOwnCostPctInc','MedOwnCostPctIncNoMtg','NumInShelters','PctForeignBorn','PctBornSameState','PctSameHouse85','PctSameCity85','PctSameState85','LemasSwornFT','LemasSwFTPerPop','LemasSwFTFieldOps','LemasSwFTFieldPerPop','LemasTotalReq','PolicReqPerOffic','PolicPerPop','RacialMatchCommPol','PctPolicWhite','PctPolicBlack','PctPolicHisp','PctPolicAsian','PctPolicMinor','OfficAssgnDrugUnits','NumKindsDrugsSeiz','PolicAveOTWorked','LandArea','PopDens','PctUsePubTrans','PolicCars','PolicOperBudg','LemasPctPolicOnPatr','LemasGangUnitDeploy','LemasPctOfficDrugUn','PolicBudgPerPop'],['ViolentCrimesPerPop']]
 
-        return data, column_names, pri
+    return data, column_names, pri
 
 def find_dag(dataset_name):
     if dataset_name in ['adult', 'credit', 'crime']:
