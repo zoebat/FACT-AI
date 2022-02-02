@@ -11,6 +11,7 @@ from .credit_data import load as credit_load
 
 
 def get_data(dataset_name):
+    print("BEN GET DATA")
     if dataset_name == 'adult':
         data, _, _ = adult_load()
         column_names = [
@@ -68,9 +69,9 @@ def get_data(dataset_name):
         _, _, data, _, _ = crime_load()
         column_names = [
             'state',
-            'county',
-            'community',
-            'communityname', # string
+            # 'county',
+            # 'community',
+            # 'communityname', # string
             'fold',
             'population',
             'householdsize',
@@ -97,7 +98,7 @@ def get_data(dataset_name):
             'blackPerCap',
             'indianPerCap',
             'AsianPerCap',
-            'OtherPerCap',
+            # 'OtherPerCap',
             'HispPerCap',
             'NumUnderPov',
             'PctPopUnderPov',
@@ -168,36 +169,48 @@ def get_data(dataset_name):
             'PctSameHouse85',
             'PctSameCity85',
             'PctSameState85',
-            'LemasSwornFT',
-            'LemasSwFTPerPop',
-            'LemasSwFTFieldOps',
-            'LemasSwFTFieldPerPop',
-            'LemasTotalReq',
-            'LemasTotReqPerPop',
-            'PolicReqPerOffic',
-            'PolicPerPop',
-            'RacialMatchCommPol',
-            'PctPolicWhite',
-            'PctPolicBlack',
-            'PctPolicHisp',
-            'PctPolicAsian',
-            'PctPolicMinor',
-            'OfficAssgnDrugUnits',
-            'NumKindsDrugsSeiz',
-            'PolicAveOTWorked',
+            # 'LemasSwornFT',
+            # 'LemasSwFTPerPop',
+            # 'LemasSwFTFieldOps',
+            # 'LemasSwFTFieldPerPop',
+            # 'LemasTotalReq',
+            # 'LemasTotReqPerPop',
+            # 'PolicReqPerOffic',
+            # 'PolicPerPop',
+            # 'RacialMatchCommPol',
+            # 'PctPolicWhite',
+            # 'PctPolicBlack',
+            # 'PctPolicHisp',
+            # 'PctPolicAsian',
+            # 'PctPolicMinor',
+            # 'OfficAssgnDrugUnits',
+            # 'NumKindsDrugsSeiz',
+            # 'PolicAveOTWorked',
             'LandArea',
             'PopDens',
             'PctUsePubTrans',
-            'PolicCars',
-            'PolicOperBudg',
-            'LemasPctPolicOnPatr',
-            'LemasGangUnitDeploy',
+            # 'PolicCars',
+            # 'PolicOperBudg',
+            # 'LemasPctPolicOnPatr',
+            # 'LemasGangUnitDeploy',
             'LemasPctOfficDrugUn',
-            'PolicBudgPerPop',
+            # 'PolicBudgPerPop',
             'ViolentCrimesPerPop'
         ]
+
+        print(len(column_names))
         # Chose root nodes randomly, maybe experiment with different root nodes
-        pri = [['state', 'population', 'perCapInc','MedRent','NumStreet','LemasTotReqPerPop'], ['county','community','communityname','fold','householdsize','racepctblack','racePctWhite','racePctAsian','racePctHisp','agePct12t21','agePct12t29','agePct16t24','agePct65up','numbUrban','pctUrban','medIncome','pctWWage','pctWFarmSelf','pctWInvInc','pctWSocSec','pctWPubAsst','pctWRetire','medFamInc','whitePerCap','blackPerCap','indianPerCap','AsianPerCap','OtherPerCap','HispPerCap','NumUnderPov','PctPopUnderPov','PctLess9thGrade','PctNotHSGrad','PctBSorMore','PctUnemployed','PctEmploy','PctEmplManu','PctEmplProfServ','PctOccupManu','PctOccupMgmtProf','MalePctDivorce','MalePctNevMarr','FemalePctDiv','TotalPctDiv','PersPerFam','PctFam2Par','PctKids2Par','PctYoungKids2Par','PctTeen2Par','PctWorkMomYoungKids','PctWorkMom','NumIlleg','PctIlleg','NumImmig','PctImmigRecent','PctImmigRec5','PctImmigRec8','PctImmigRec10','PctRecentImmig','PctRecImmig5','PctRecImmig8','PctRecImmig10','PctSpeakEnglOnly','PctNotSpeakEnglWell','PctLargHouseFam','PctLargHouseOccup','PersPerOccupHous','PersPerOwnOccHous','PersPerRentOccHous','PctPersOwnOccup','PctPersDenseHous','PctHousLess3BR','MedNumBR','HousVacant','PctHousOccup','PctHousOwnOcc','PctVacantBoarded','PctVacMore6Mos','MedYrHousBuilt','PctHousNoPhone','PctWOFullPlumb','OwnOccLowQuart','OwnOccMedVal','OwnOccHiQuart','RentLowQ','RentMedian','RentHighQ','MedRentPctHousInc','MedOwnCostPctInc','MedOwnCostPctIncNoMtg','NumInShelters','PctForeignBorn','PctBornSameState','PctSameHouse85','PctSameCity85','PctSameState85','LemasSwornFT','LemasSwFTPerPop','LemasSwFTFieldOps','LemasSwFTFieldPerPop','LemasTotalReq','PolicReqPerOffic','PolicPerPop','RacialMatchCommPol','PctPolicWhite','PctPolicBlack','PctPolicHisp','PctPolicAsian','PctPolicMinor','OfficAssgnDrugUnits','NumKindsDrugsSeiz','PolicAveOTWorked','LandArea','PopDens','PctUsePubTrans','PolicCars','PolicOperBudg','LemasPctPolicOnPatr','LemasGangUnitDeploy','LemasPctOfficDrugUn','PolicBudgPerPop'],['ViolentCrimesPerPop']]
+        pri = [['racepctblack','state', 'population', 'perCapInc','MedRent','NumStreet'], [
+            # 'county','community','communityname',
+            'fold','householdsize','racePctWhite','racePctAsian','racePctHisp','agePct12t21','agePct12t29','agePct16t24','agePct65up','numbUrban','pctUrban','medIncome','pctWWage','pctWFarmSelf','pctWInvInc','pctWSocSec','pctWPubAsst','pctWRetire','medFamInc','whitePerCap','blackPerCap','indianPerCap','AsianPerCap',
+            # 'OtherPerCap',
+            'HispPerCap','NumUnderPov','PctPopUnderPov','PctLess9thGrade','PctNotHSGrad','PctBSorMore','PctUnemployed','PctEmploy','PctEmplManu','PctEmplProfServ','PctOccupManu','PctOccupMgmtProf','MalePctDivorce','MalePctNevMarr','FemalePctDiv','TotalPctDiv','PersPerFam','PctFam2Par','PctKids2Par','PctYoungKids2Par','PctTeen2Par','PctWorkMomYoungKids','PctWorkMom','NumIlleg','PctIlleg','NumImmig','PctImmigRecent','PctImmigRec5','PctImmigRec8','PctImmigRec10','PctRecentImmig','PctRecImmig5','PctRecImmig8','PctRecImmig10','PctSpeakEnglOnly','PctNotSpeakEnglWell','PctLargHouseFam','PctLargHouseOccup','PersPerOccupHous','PersPerOwnOccHous','PersPerRentOccHous','PctPersOwnOccup','PctPersDenseHous','PctHousLess3BR','MedNumBR','HousVacant','PctHousOccup','PctHousOwnOcc','PctVacantBoarded','PctVacMore6Mos','MedYrHousBuilt','PctHousNoPhone','PctWOFullPlumb','OwnOccLowQuart','OwnOccMedVal','OwnOccHiQuart','RentLowQ','RentMedian','RentHighQ','MedRentPctHousInc','MedOwnCostPctInc','MedOwnCostPctIncNoMtg','NumInShelters','PctForeignBorn','PctBornSameState','PctSameHouse85','PctSameCity85','PctSameState85',
+        # 'LemasSwornFT','LemasSwFTPerPop','LemasSwFTFieldOps','LemasSwFTFieldPerPop','LemasTotalReq','LemasTotReqPerPop','PolicReqPerOffic','PolicPerPop','RacialMatchCommPol','PctPolicWhite','PctPolicBlack','PctPolicHisp','PctPolicAsian','PctPolicMinor','OfficAssgnDrugUnits','NumKindsDrugsSeiz','PolicAveOTWorked',
+        'LandArea','PopDens','PctUsePubTrans',
+        # 'PolicCars','PolicOperBudg','LemasPctPolicOnPatr','LemasGangUnitDeploy',
+        'LemasPctOfficDrugUn'
+        # ,'PolicBudgPerPop'
+        ],['ViolentCrimesPerPop']]
 
     return data, column_names, pri
 
@@ -217,4 +230,7 @@ def find_dag(dataset_name):
     dag_seed = []
     for edge in tetrad.getEdges():
         dag_seed.append(list([column_names.index(edge.split(' ')[0]), column_names.index(edge.split(' ')[-1])]))
+    if dataset_name == 'crime':
+        dag_seed.append([4,101])
+
     return dag_seed
