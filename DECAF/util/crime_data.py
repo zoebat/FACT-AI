@@ -9,7 +9,7 @@ def load():
         'state',
         'county',
         'community',
-        'communityname', # string
+        'communityname',
         'fold',
         'population',
         'householdsize',
@@ -141,38 +141,39 @@ def load():
 
     df.reset_index(drop=True, inplace=True)
 
+    # drop all columns that have an entry with ?
     for col in df:
         if df[col].dtype == 'object':
-            df = df[df[col] != "?"]
-            # number of entries: 1994 -> 123
+            df.drop(col, axis=1, inplace=True)
 
     df = df.dropna(how = 'all')
-
-    df['communityname'] = preprocessing.LabelEncoder().fit_transform(df['communityname'])
 
     median_target = df['ViolentCrimesPerPop'].median()
 
     # binarize target variable
     df['ViolentCrimesPerPop'] = np.where(df['ViolentCrimesPerPop'] > median_target, 1, 0)
-    # print(df)
+
+    # binarize racepctblack
+    df['racepctblack'] = np.where(df['racepctblack'] > 0.5, 1, 0)
+
+    # binarize racePctWhite
+    df['racePctWhite'] = np.where(df['racePctWhite'] > 0.5, 1, 0)
+
+    # binarize racePctAsian
+    df['racePctAsian'] = np.where(df['racePctAsian'] > 0.5, 1, 0)
+
+    # binarize racePctHisp
+    df['racePctHisp'] = np.where(df['racePctHisp'] > 0.5, 1, 0)
+
+    for i in range(len(df.columns)):
+        print(i, df.columns[i])
 
     dfr = df.copy()
+    column_num = len(df.columns)
     df = df.values
-    X = df[:, :127].astype(np.float32)
+    X = df[:, :column_num-1].astype(np.float32)
     min_max_scaler = preprocessing.MinMaxScaler()
     X = min_max_scaler.fit_transform(X)
-    y = df[:, 127].astype(np.uint32)
+    y = df[:, column_num-1].astype(np.uint32)
     Xy = min_max_scaler.fit_transform(df)
-
     return X, y, dfr, Xy, min_max_scaler
-
-
-
-    # print(df)
-    # print(df.info()) # dus 123 entries, en 128 attributes
-
-    # <class 'pandas.core.frame.DataFrame'>
-    # Int64Index: 123 entries, 16 to 1992
-    # Columns: 128 entries, state to ViolentCrimesPerPop
-    # dtypes: float64(100), int64(3), object(25)
-    # memory usage: 124.0+ KB
