@@ -138,21 +138,16 @@ def load():
         [">50K", "<=50K"],
     ]
 
-    print(df.describe())
     for row in replace:
         df = df.replace(row, range(len(row)))
 
-    print(df.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
+
+    # print(df.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
 
     dfr = df.copy()
     df = df.values
 
-    X = df[:, :14].astype(np.uint32)
-
     min_max_scaler = preprocessing.MinMaxScaler()
-    X = min_max_scaler.fit_transform(X)
     Xy = min_max_scaler.fit_transform(df)
 
-    y = df[:, 14].astype(np.uint8)
-
-    return X, y, dfr, Xy, min_max_scaler
+    return dfr, Xy, min_max_scaler

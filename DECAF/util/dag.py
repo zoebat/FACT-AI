@@ -32,7 +32,18 @@ def get_data(dataset_name):
             "label",
         ]
         # Which prior did we use for the adult dataset?
-        pri = [['label']]
+        pri = [['age', 'sex'],["workclass",
+        "fnlwgt",
+        "education",
+        "education-num",
+        "marital-status",
+        "occupation",
+        "relationship",
+        "race",
+        "capital-gain",
+        "capital-loss",
+        "hours-per-week",
+        "native-country"],['label']]
     elif dataset_name == 'credit':
         _, _, data, _, _ = credit_load()
         column_names = [
@@ -215,6 +226,7 @@ def find_dag(dataset_name):
     tetrad = s.tetradrunner()
     tetrad.run(algoId = 'fges', scoreId = 'cg-bic-score', dfs = data, priorKnowledge = prior,maxDegree = -1, faithfulnessAssumed = True, verbose = False)
     tetrad.getEdges()
+    print(tetrad.getTetradGraph())
     dag_seed = []
     for edge in tetrad.getEdges():
         dag_seed.append(list([column_names.index(edge.split(' ')[0]), column_names.index(edge.split(' ')[-1])]))

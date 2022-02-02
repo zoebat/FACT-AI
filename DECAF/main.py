@@ -6,12 +6,16 @@ import torch
 
 from pytorch_lightning.loggers import TensorBoardLogger
 from sklearn.metrics import precision_score, recall_score, roc_auc_score
-from util import adult_data
+from util import adult_data, metrics, data, dag
 from xgboost import XGBClassifier
 from sklearn.neural_network import MLPClassifier
 
-from util import data, metrics
 from model.DECAF import DECAF
+
+def experiment_train_base_classifier(X, y):
+    baseline_clf = MLPClassifier().fit(X, y)
+    y_pred = baseline_clf.predict(X)
+    print("baseline scores", precision_score(y, y_pred), recall_score(y, y_pred), roc_auc_score(y, y_pred))
 
 def experiment_decaf(X, y, Xy, min_max_scaler):
     dag_seed = [
@@ -57,7 +61,7 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     ]
     bias_dict_FTU = {14: [9]}
     bias_dict_CF = {14: [7, 9, 5]}
-    bis_dict_DP = {14: [7, 13, 1, 9, 5, 12, 6]}
+    bias_dict_DP = {14: [7, 13, 1, 9, 5, 12, 6]}
 
     baseline_clf = MLPClassifier().fit(X, y)
     y_pred = baseline_clf.predict(X)
@@ -75,7 +79,7 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     trainer = pl.Trainer(max_epochs=30, logger=logger)
     trainer.fit(model, dm)
 
-    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order(), biased_edges=bias_dict_FTU).detach().numpy())
+    Xy_synth = ( model.gen_synthetic(dm.dataset.x, gen_order=model.get_gen_order(), biased_edges=bias_dict_DP).detach().numpy())
     Xy_synth1 = min_max_scaler.inverse_transform(Xy_synth)
     header = ['age','workclass','fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',  'relationship', 'race','sex', 'capital-gain', 'capital-loss',
       'hours-per-week',  'native-country', "label"]
@@ -106,6 +110,6 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     
 
 if __name__ == "__main__":
-    X, y, Xy, min_max_scaler = adult_data.load()
+    X, y, dfr, Xy, min_max_scaler = adult_data.load()
     experiment_decaf(X, y, Xy, min_max_scaler)
 
