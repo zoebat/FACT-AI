@@ -31,7 +31,7 @@ def load():
     for feat in ['workclass', 'education','marital-status', 'occupation', 'relationship','race', 'sex', 'native-country', 'label']:
         df[feat] = preprocessing.LabelEncoder().fit_transform(df[feat])
 
-    # print(df.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
+    print(df.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
 
     dfr = df.copy()
     df = df.values
