@@ -64,7 +64,6 @@ class Generator_causal(nn.Module):
                     M_init[pair[0], pair[1]] = 1
 
                 self.M = torch.nn.parameter.Parameter(M_init, requires_grad=False)
-                print("Initialised adjacency matrix as parsed:\n", self.M)
             else:
                 M_init = torch.rand(x_dim, x_dim) * 0.2
                 M_init[torch.eye(x_dim, dtype=bool)] = 0
