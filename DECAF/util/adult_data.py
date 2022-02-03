@@ -141,9 +141,6 @@ def load():
     for row in replace:
         df = df.replace(row, range(len(row)))
 
-
-    print(df.describe(percentiles=[.25, .5, .75, 0.90, 0.95, 0.99]))
-
     dfr = df.copy()
     df = df.values
 
