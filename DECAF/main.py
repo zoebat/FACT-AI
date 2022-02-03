@@ -18,7 +18,9 @@ def experiment_train_base_classifier(X, y):
     y_pred = baseline_clf.predict(X)
     print("baseline scores", precision_score(y, y_pred), recall_score(y, y_pred), roc_auc_score(y, y_pred))
 
-def experiment_decaf(X, y, Xy, min_max_scaler):
+def experiment_decaf(Xy, min_max_scaler):
+    X = Xy[:, :-1]
+    y = Xy[:,-1]
     dag_seed = [
         [0, 6],
         [0, 12],
@@ -111,6 +113,6 @@ def experiment_decaf(X, y, Xy, min_max_scaler):
     
 
 if __name__ == "__main__":
-    X, y, dfr, Xy, min_max_scaler = adult_data.load()
-    experiment_decaf(X, y, Xy, min_max_scaler)
+    dfr, Xy, min_max_scaler = adult_data.load()
+    experiment_decaf(Xy, min_max_scaler)
 
