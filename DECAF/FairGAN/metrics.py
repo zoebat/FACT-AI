@@ -59,37 +59,5 @@ def dp(clf, X_synth, idx):
     return np.abs(y0 - y1)
 
 
-def dp_pr(clf, X, idx):
-    """ Function to measure Demographic Parity (DP) for a given dataset and a classifier.
-
-    Args:
-        clf: The classifier for which DP has to be measured
-        X_synth: The dataset for which DP has to be measured
-        idx: The index of the protected variable (binary feature)
-
-    Returns:
-        float: The return value. The DP metric for the given dataset and classifier
-
-    """
-    X[:, idx] = np.round(X[:, idx])
-    X_p = X[:, idx]
-    X_pr = np.delete(X, idx, axis=1)
-    y_pred = clf.predict_proba(X_pr)[:, 1]
-
-    # Measure DP in terms of the Total Variation
-    # i.e., the difference between the predictions of a downstream classifier in terms of positive to negative ratio between the different classes of protected variable A
-
-    y_A0 = []
-    y_A1 = []
-    for i in range(len(y_pred)):
-        if X_p[i] == 0:
-            y_A0.append(y_pred[i])
-        if X_p[i] == 1:
-            y_A1.append(y_pred[i])
-    y0 = np.average(y_A0)
-    y1 = np.average(y_A1)
-    return np.abs(y0 - y1)
-
-
 
 

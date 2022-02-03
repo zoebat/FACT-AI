@@ -9,7 +9,7 @@ from util import crime_data, metrics, data, dag
 from sklearn.neural_network import MLPClassifier
 from xgboost import XGBClassifier
 
-from model.DECAF import DECAF
+from models.DECAF import DECAF
 
 def experiment_decaf(X, y, Xy, min_max_scaler):
     # dag_seed = dag.find_dag('crime')
