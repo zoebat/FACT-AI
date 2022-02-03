@@ -165,15 +165,10 @@ def load():
     # binarize racePctHisp
     df['racePctHisp'] = np.where(df['racePctHisp'] > 0.5, 1, 0)
 
-    for i in range(len(df.columns)):
-        print(i, df.columns[i])
-
     dfr = df.copy()
-    column_num = len(df.columns)
     df = df.values
-    X = df[:, :column_num-1].astype(np.float32)
+
     min_max_scaler = preprocessing.MinMaxScaler()
-    X = min_max_scaler.fit_transform(X)
-    y = df[:, column_num-1].astype(np.uint32)
     Xy = min_max_scaler.fit_transform(df)
-    return X, y, dfr, Xy, min_max_scaler
+
+    return dfr, Xy, min_max_scaler
