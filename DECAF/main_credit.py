@@ -12,7 +12,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 
 from util import data
-from model.DECAF import DECAF
+from models.DECAF import DECAF
 
 def experiment_train_base_classifier(X, y):
     baseline_clf = MLPClassifier().fit(X, y)

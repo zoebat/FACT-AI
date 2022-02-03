@@ -10,7 +10,8 @@ from util import adult_data, metrics, data, dag
 from xgboost import XGBClassifier
 from sklearn.neural_network import MLPClassifier
 
-from model.DECAF import DECAF
+from models.DECAF import DECAF
+
 
 def experiment_train_base_classifier(X, y):
     baseline_clf = MLPClassifier().fit(X, y)
