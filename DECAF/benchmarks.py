@@ -211,5 +211,5 @@ def experiment_benchmark_wgan_pr(X, y):
     print("DP: {}, std: {}".format(np.mean(dps), np.std(dps)))
 
 if __name__ == "__main__":
-    X, y, dfr, Xy, min_max_scaler = adult_data.load()
-    experiment_benchmark_wgan_pr(X, y)
+    dfr, Xy, min_max_scaler = adult_data.load()
+    experiment_benchmark_wgan_pr(Xy[:, :-1], Xy[:, -1])

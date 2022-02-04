@@ -1,0 +1,31 @@
+name: decaf-repro
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.6.13
+  - pip=21.2.4
+  - cudatoolkit
+  - pytorch
+  - torchvision
+  - torchaudio
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
+  - pip:
+    - pytorch-lightning
+    - tensorboard
+    - tabulate
+    - tqdm
+    - pillow
+    - xgboost
+    - loguru
+    - networkx 
+    - sklearn
+    - javabridge
+    - pyparsing
+    - pydot
+    - git+git://github.com/bd2kccd/py-causal 
+
